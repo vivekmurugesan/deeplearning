@@ -1,6 +1,10 @@
 package com.test.ml.commons;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.List;
+import java.util.Map;
 
 import com.test.ml.commons.data.model.Activation;
 import com.test.ml.commons.data.model.ActivationType;
@@ -16,6 +20,8 @@ import com.test.ml.commons.dtype.DoubleMatrix;
  *
  */
 public class NNModelUtil extends ModelUtil {
+	
+	private String costFile = "costs_1.csv";
 
 	public static void main(String[] args) {
 
@@ -48,15 +54,18 @@ public class NNModelUtil extends ModelUtil {
 	 * @param yTest
 	 * @param numIterations
 	 * @param learningRate
+	 * @throws FileNotFoundException 
 	 */
 	public void fitModel(DoubleMatrix xTrain, DoubleMatrix yTrain, 
 			DoubleMatrix xTest, DoubleMatrix yTest, 
-			int numIterations, double learningRate, NetworkLayout network) {
+			int numIterations, double learningRate, NetworkLayout network) throws FileNotFoundException {
 		
 		NNPropogateUtil propUtil = new NNPropogateUtil();
 		
-		propUtil.optimize(xTrain, yTrain, network, 
-				 learningRate, numIterations, true);
+		PrintStream ps = new PrintStream(new FileOutputStream(costFile));
+		
+		Map<Integer, Double> costs = propUtil.optimize(xTrain, yTrain, network, 
+				 learningRate, numIterations, true, ps);
 		
 		double threshold = 0.5;
 		
@@ -70,6 +79,10 @@ public class NNModelUtil extends ModelUtil {
 			double testAccrPerc = computeAccuracy(yTest, testPreds)*100;
 			System.out.printf("Prediction accuracy on test is: %f\n", testAccrPerc );
 		}
+		
+	}
+	
+	private void printSummary(Map<Integer, Double> costs) {
 		
 	}
 

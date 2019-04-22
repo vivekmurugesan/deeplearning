@@ -1,5 +1,6 @@
 package com.test.ml.commons.cli;
 
+import java.io.FileNotFoundException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -76,7 +77,7 @@ public class TrainModelCli {
 	 * @Parameter (names= {"--model-type"}) private String modelType;
 	 */
 	
-	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException {
+	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, FileNotFoundException {
 		TrainModelCli cli = new TrainModelCli();
 		
 		JCommander.newBuilder()
@@ -88,7 +89,7 @@ public class TrainModelCli {
 		cli.triggerModel();
 	}
 	
-	private void triggerModel() {
+	private void triggerModel() throws FileNotFoundException {
 		CSVReader reader = new CSVReader(dataFile, targetLabel, delim, catVars);
 		Map<Dataset.Type, Dataset> datasets = reader.buildDataSet(false);
 		Dataset train = datasets.get(Dataset.Type.train);

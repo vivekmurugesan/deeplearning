@@ -1,13 +1,12 @@
 package com.test.ml.commons;
 
-import com.test.ml.commons.data.model.Activation;
+import java.io.PrintStream;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.test.ml.commons.data.model.ActivationType;
-import com.test.ml.commons.data.model.ForwardPropResult;
-import com.test.ml.commons.data.model.Gradients;
 import com.test.ml.commons.data.model.LayerCache;
 import com.test.ml.commons.data.model.LayerGradient;
-import com.test.ml.commons.data.model.NNCache;
-import com.test.ml.commons.data.model.ActivationType;
 import com.test.ml.commons.data.model.nn.LayerParams;
 import com.test.ml.commons.data.model.nn.NetworkLayout;
 import com.test.ml.commons.dtype.DoubleMatrix;
@@ -77,7 +76,7 @@ public class NNPropogateUtil extends PropogateUtil {
 				MatrixUtil.subtract(f1, f2));
 		
 		LayerGradient lGrad = new LayerGradient(layerCount-1);
-		//lGrad.setdA(dAL);
+		lGrad.setdA(dAL);
 		
 		layerParams.setLayerGrad(lGrad);
 		/**
@@ -86,7 +85,7 @@ public class NNPropogateUtil extends PropogateUtil {
 		
 		
 		DoubleMatrix aPrev = layerParamsArr[layerCount-2].getLayerCache().getA();
-		linearActivationBackward(dAL, lCache.getZ(), lGrad, layerParams, aPrev);
+		dAL = linearActivationBackward(dAL, lCache.getZ(), lGrad, layerParams, aPrev);
 		
 		
 		for(int lNumber=layerCount-2;lNumber>=0;lNumber--) {
@@ -94,17 +93,18 @@ public class NNPropogateUtil extends PropogateUtil {
 			aPrev = (lNumber>=1)?layerParamsArr[lNumber-1].getLayerCache().getA() : X;
 			lCache = layerParams.getLayerCache();
 			// Getting the dA from the next layer gradient computed already in the backprop
-			dAL = lGrad.getdA();  
+			/* dAL = lGrad.getdA(); */   
 			lGrad = new LayerGradient(lNumber);
 			layerParams.setLayerGrad(lGrad);
-			linearActivationBackward(dAL, lCache.getZ(), lGrad, layerParams, aPrev);
+			lGrad.setdA(dAL);
+			dAL = linearActivationBackward(dAL, lCache.getZ(), lGrad, layerParams, aPrev);
 			
 		}
 		
 	}
 	
 	
-	private void linearActivationBackward(DoubleMatrix dA, DoubleMatrix Z, 
+	private DoubleMatrix linearActivationBackward(DoubleMatrix dA, DoubleMatrix Z, 
 			LayerGradient lGrad, LayerParams layerParams, DoubleMatrix aPrev) {
 		
 		ActivationType actType = layerParams.getActivation().getType();
@@ -117,10 +117,10 @@ public class NNPropogateUtil extends PropogateUtil {
 		case tanh:
 		}
 		lGrad.setdZ(dZ);
-		linearBackward(lGrad, layerParams, aPrev);
+		return linearBackward(lGrad, layerParams, aPrev);
 	}
 	
-	private void linearBackward(LayerGradient lGrad, LayerParams layerParams, DoubleMatrix aPrev) {
+	private DoubleMatrix linearBackward(LayerGradient lGrad, LayerParams layerParams, DoubleMatrix aPrev) {
 		DoubleMatrix w = layerParams.getWeights();
 		double[] b = layerParams.getBias();
 		int m = aPrev.getRows();
@@ -135,9 +135,11 @@ public class NNPropogateUtil extends PropogateUtil {
 		// FIXME --> Dimension mismatch 303x5 ** 1x5
 		DoubleMatrix derivA = MatrixUtil.multiply(dZ, w);
 		
-		lGrad.setdA(derivA);
+		//lGrad.setdA(derivA); 
 		lGrad.setdBias(derivB);
 		lGrad.setdWeights(derivW);
+		
+		return derivA;
 	}
 	
 	private void updateParameters(LayerParams[] layerParamsArr, double learningRate) {
@@ -165,13 +167,13 @@ public class NNPropogateUtil extends PropogateUtil {
 	 * @param Y
 	 * @param learningRate
 	 * @param numIterations
+	 * @param ps 
 	 * @return
 	 */
-	public void optimize(DoubleMatrix X, DoubleMatrix Y, NetworkLayout network,
-			double learningRate, int numIterations, boolean printCost) {
+	public Map<Integer, Double> optimize(DoubleMatrix X, DoubleMatrix Y, NetworkLayout network,
+			double learningRate, int numIterations, boolean printCost, PrintStream ps) {
 		
-		network.init();
-		
+		Map<Integer, Double> costs = new TreeMap<>();
 		LayerParams[] layerParamsArr = network.getLayers();
 		int m = X.getRows();
 		
@@ -181,23 +183,27 @@ public class NNPropogateUtil extends PropogateUtil {
 			DoubleMatrix AL = forwardProp(X, Y, layerParamsArr);
 			double cost = computeCost(Y, AL, m);
 			
+			if(i == 0) {
+				System.out.println("Layer Params Summary.."); network.printLayerParams();
+			}
+			
 			if(printCost && i % 50 == 0) {
 				System.out.println(".. Cost.. " + cost +"... on iteration::" + i);
-				//System.out.println("Layer Params Summary.."); network.printLayerParams();
+				ps.println(i+","+cost);
+				costs.put(i+1, cost);
 			}
 			
 			backwardProp(X, Y, layerParamsArr);
 			
-			/*if(printCost && i % 50 == 0)
-			  System.out.println("Gradients summary.."); network.printGradients();*/
+			if(i == 0) {
+			  System.out.println("Gradients summary.."); network.printGradients();
+			}
 			 
-			
-			
 			updateParameters(layerParamsArr, learningRate);
 			
-			
-			
 		}
+		
+		return costs;
 	}
 	
 	

@@ -84,9 +84,9 @@ public class MatrixUtilTest {
 		DoubleMatrix one = new DoubleMatrix(3,3);one.setData(a);
 		DoubleMatrix expected = new DoubleMatrix(3,3);expected.setData(b);
 		
-		MatrixUtil.addScalar(one, x);
+		DoubleMatrix result = MatrixUtil.addScalar(one, x);
 		
-		Assert.assertTrue(expected.equals(one));
+		Assert.assertTrue(expected.equals(result));
 		
 	}
 	
@@ -98,9 +98,9 @@ public class MatrixUtilTest {
 		DoubleMatrix one = new DoubleMatrix(3,3);one.setData(a);
 		DoubleMatrix expected = new DoubleMatrix(3,3);expected.setData(b);
 		
-		MatrixUtil.addScalar(one, x);
+		DoubleMatrix result = MatrixUtil.addScalar(one, x);
 		
-		Assert.assertTrue(expected.equals(one));
+		Assert.assertTrue(expected.equals(result));
 		
 	}
 	

@@ -1,0 +1,11 @@
+1. To build and train a neural network with 5 layers and with 15,12,10,5,1 nodes on each layer respectively.
+
+java -jar target/java-ml-0.0.1-SNAPSHOT-jar-with-dependencies.jar --model-type neural_network --layer-count 5 --layer-node-count 15,12,10,5,1 --layer-activations sigmoid,sigmoid,sigmoid,sigmoid,sigmoid --rand-seed 12345 --class-count 2 --data-file heart.csv --text --delim , --cat-vars sex,cp,fps,restecg,exang,slope,ca,thal --test-ratio 0.0 --epoch-count 500000 --learning-rate 0.001 --target-label target
+
+2. To build and train a logistic regression model for the same data,
+
+java -jar target/java-ml-0.0.1-SNAPSHOT-jar-with-dependencies.jar --activation-fn sigmoid --data-file heart.csv --text --delim , --cat-vars sex,cp,fps,restecg,exang,slope,ca,thal --test-ratio 0.0 --epoch-count 100000 --learning-rate 0.001 --target-label target --model-type logit
+
+3. To build and train a neural network with 4,2,1 nodes for dataset with decision boundary. This is a simulated dataset. The utility to simulate this dataset is available in the source code in the simulate package.
+
+--model-type neural_network --layer-count 3 --layer-node-count 4,2,1 --layer-activations sigmoid,sigmoid,sigmoid --rand-seed 123 --class-count 2 --data-file test_1.csv --text --delim , --test-ratio 0.0 --epoch-count 200000 --learning-rate 0.001 --target-label target
